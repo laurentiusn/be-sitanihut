@@ -4,10 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Kph;
 use App\Models\Kth;
-use App\Models\Role;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Katalog;
 
 class UserSeeder extends Seeder
 {
@@ -16,54 +15,53 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $users = [
-            [
-                'id_role' => Role::where('slug', 'sekretariat')->first()->id,
-                'email' => 'aldowijayasept27@gmail.com',
-                'password' => bcrypt('Aldo123@'),
-            ],
-            // [
-            //     'id_role' => Role::where('slug', 'auditor')->first()->id,
-            //     'email' => 'auditor@example.com',
-            //     'password' => bcrypt('audit12345'),
-            // ],
-            // [
-            //     'id_role' => Role::where('slug', 'penanggung-jawab')->first()->id,
-            //     'email' => 'pj@example.com',
-            //     'password' => bcrypt('password123'),
-            // ],
-            // [
-            //     'id_role' => Role::where('slug', 'penyuluh')->first()->id,
-            //     'id_kph' => Kph::where('nama_kph', 'UPTD KPH Kota Agung Utara')->first()->id,
-            //     'email' => 'penyuluh@example.com',
-            //     'password' => bcrypt('password123'),
-            // ],
-            // [
-            //     'id_role' => Role::where('slug', 'penyuluh')->first()->id,
-            //     'id_kph' => Kph::where('nama_kph', 'UPTD KPH Sungai Buaya')->first()->id,
-            //     'email' => 'penyuluh2@example.com',
-            //     'password' => bcrypt('password123'),
-            // ],
-            // [
-            //     'id_role' => Role::where('slug', 'petani')->first()->id,
-            //     'id_kph' => Kph::where('nama_kph', 'UPTD KPH Kota Agung Utara')->first()->id,
-            //     'id_kth' => Kth::where('nama_kth', 'KTH Curah Sejuk')->first()->id,
-            //     'email' => 'ardora.334@gmail.com',
-            //     'password' => bcrypt('password123'),
-            // ],
-            // [
-            //     'id_role' => Role::where('slug', 'petani')->first()->id,
-            //     'id_kph' => Kph::where('nama_kph', 'UPTD KPH Kota Agung Utara')->first()->id,
-            //     'id_kth' => Kth::where('nama_kth', 'KTH Baker Lestari')->first()->id,
-            //     'email' => 'petani2@example.com',
-            //     'password' => bcrypt('password123'),
-            // ],
-        ];
+        // Ambil data KPH Tahura WAR untuk kebutuhan Demo terpusat
+        $kphTahura = Kph::where('nama_kph', 'Tahura WAR')->first();
 
-        foreach ($users as $user) {
-            User::query()->updateOrCreate([
-                'email' => $user['email']
-            ], $user);
+        // Akun Demo 1: Sekretariat
+        $sekretariat = User::factory()->sekretariat()->withDetail([
+            'nama_user' => 'Demo Sekretariat',
+        ])->create(['email' => 'sekretariat@demo.com']);
+
+        Katalog::factory()->count(3)->create(['id_user' => $sekretariat->id]);
+
+        // Akun Demo 2: Auditor
+        User::factory()->auditor()->withDetail([
+            'nama_user' => 'Demo Auditor',
+        ])->create(['email' => 'auditor@demo.com']);
+
+        if ($kphTahura) {
+            // Akun Demo 3: Penanggung Jawab (Tahura WAR)
+            User::factory()->penanggungJawab()->withDetail([
+                'nama_user' => 'Demo PJ Tahura WAR',
+            ])->create([
+                'email'  => 'pj@demo.com',
+                'id_kph' => $kphTahura->id,
+            ]);
+
+            // Akun Demo 4: Penyuluh (Tahura WAR)
+            $penyuluhDemo = User::factory()->penyuluh()->withDetail([
+                'nama_user' => 'Demo Penyuluh Tahura WAR',
+            ])->create([
+                'email'  => 'penyuluh@demo.com',
+                'id_kph' => $kphTahura->id,
+            ]);
+
+            // KTH Demo khusus untuk menampung Petani Demo utama
+            $kthDemo = Kth::factory()->create([
+                'nama_kth'    => 'KTH Demo Tahura WAR',
+                'id_kph'      => $kphTahura->id,
+                'id_penyuluh' => $penyuluhDemo->id,
+            ]);
+
+            // Akun Demo 5: Petani (Tahura WAR)
+            User::factory()->petani()->withDetail([
+                'nama_user' => 'Demo Petani Tahura WAR',
+            ])->create([
+                'email'  => 'petani@demo.com',
+                'id_kph' => $kphTahura->id,
+                'id_kth' => $kthDemo->id,
+            ]);
         }
     }
 }

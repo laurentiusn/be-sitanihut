@@ -8,10 +8,10 @@ use App\Models\Role;
 use App\Models\Kph;
 use App\Models\Kth;
 use App\Models\UserDetail;
-use Illuminate\Contracts\Auth\Authenticatable as AuthAuthenticatable;
-use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
@@ -19,7 +19,7 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasUuids;
+    use HasFactory, Notifiable, HasUuids, SoftDeletes;
 
     public $timestamps = false;
     
@@ -70,6 +70,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(Role::class, 'id_role', 'id');
     }
 
+    public function refreshTokens(): HasMany
+    {
+        return $this->hasMany(RefreshToken::class, 'id_user', 'id');
+    }
+
     public function kph()
     {
         return $this->belongsTo(Kph::class, 'id_kph', 'id');
@@ -105,15 +110,4 @@ class User extends Authenticatable implements JWTSubject
             'role' => $this->role ? $this->role->slug : null,
         ];
     }
-
-    // public function scopeFilterForPenyuluh(Builder $query, User $user){
-    //     if ($user->hasRole('penyuluh')){
-    //         return $query->where('id_kph', $user->id_kph)
-    //             ->whereHas('role', function($relationQuery) {
-    //                 $relationQuery->where('slug', 'petani');
-    //             });
-    //     }
-
-    //     return $query;
-    // }
 }

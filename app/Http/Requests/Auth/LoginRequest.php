@@ -16,16 +16,14 @@ class LoginRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'login' => 'required|string',
-            'password' => 'required|string',
+            'login'         => 'required|string',
+            'password'      => 'required|string',
+            'platform'      => 'nullable|string',
+            'device_name'   => 'nullable|string|max:255',
+            'device_unq'    => 'nullable|string|max:255',
         ];
     }
 

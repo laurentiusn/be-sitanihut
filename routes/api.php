@@ -22,7 +22,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassMail']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::get('/kph', [KphController::class, 'index']);
-
+    Route::post('/refresh', [AuthController::class, 'refreshToken']);
 
     //Middleware yang telah login
     Route::middleware('auth:api')->group(function () {

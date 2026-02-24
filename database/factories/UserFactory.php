@@ -2,43 +2,108 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
- */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    protected $model = User::class;
 
     /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
+     * Helper privat untuk memastikan Role ada di DB.
+     * Mencegah duplikasi kode di setiap state.
      */
+    private function ensureRoleExists(string $slug, string $namaRole): string
+    {
+        $role = DB::table('role')->where('slug', $slug)->first();
+
+        if (!$role) {
+            $id = Str::uuid()->toString();
+            DB::table('role')->insert([
+                'id' => $id,
+                'nama_role' => $namaRole,
+                'slug' => $slug,
+            ]);
+            return $id;
+        }
+
+        return $role->id;
+    }
+
     public function definition(): array
     {
+        // Default role: Petani (atau bisa diubah sesuai kebutuhan)
         return [
-            'name' => fake()->name(),
+            'id' => Str::uuid()->toString(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'password' => Hash::make('password'),
+            'id_role' => $this->ensureRoleExists('petani', 'Petani'),
+            'id_kph' => null,
+            'id_kth' => null,
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    // --- STATES UNTUK ROLE ---
+
+    public function petani(): static
     {
         return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+            'id_role' => $this->ensureRoleExists('petani', 'Petani'),
         ]);
+    }
+
+    public function penyuluh(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'id_role' => $this->ensureRoleExists('penyuluh', 'Penyuluh'),
+        ]);
+    }
+
+    public function sekretariat(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'id_role' => $this->ensureRoleExists('sekretariat', 'Sekretariat'),
+        ]);
+    }
+
+    public function auditor(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'id_role' => $this->ensureRoleExists('auditor', 'Auditor'),
+        ]);
+    }
+
+    public function penanggungJawab(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'id_role' => $this->ensureRoleExists('penanggung-jawab', 'Penanggung Jawab'),
+        ]);
+    }
+
+    // --- STATE UNTUK DETAIL USER ---
+
+    public function withDetail(array $customDetail = []): static
+    {
+        return $this->afterCreating(function (User $user) use ($customDetail) {
+            $tglLahir = fake()->dateTimeBetween('-60 years', '-18 years')->format('dmy');
+            $nikDummy = fake()->numerify("######{$tglLahir}####");
+
+            DB::table('user_details')->insert([
+                'id' => Str::uuid()->toString(),
+                'id_user' => $user->id,
+                'nama_user' => $customDetail['nama_user'] ?? fake()->name(),
+                'nomor_induk' => $customDetail['nomor_induk'] ?? $nikDummy,
+                'jenis_kelamin' => $customDetail['jenis_kelamin'] ?? fake()->randomElement(['pria', 'wanita']),
+                'alamat' => fake()->address(),
+                'nomor_wa' => fake()->phoneNumber(),
+                'luas_lahan' => fake()->randomFloat(2, 0, 100),
+                'pendidikan_terakhir' => 'SMA',
+                'pekerjaan_sampingan' => 'Wiraswasta',
+                'jabatan' => 'Anggota',
+            ]);
+        });
     }
 }

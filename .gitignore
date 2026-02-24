@@ -23,5 +23,4 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/features
-behat.yml
+/public/measurement

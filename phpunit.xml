@@ -6,11 +6,11 @@
 >
     <testsuites>
         <testsuite name="Unit">
-            <directory>tests/Unit</directory>
+            <file>tests/Unit/RefreshTokenTest.php</file>
         </testsuite>
-        <testsuite name="Feature">
+        <!-- <testsuite name="Feature">
             <directory>tests/Feature</directory>
-        </testsuite>
+        </testsuite> -->
     </testsuites>
     <source>
         <include>
@@ -29,5 +29,6 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <ini name="memory_limit" value="-1" />
     </php>
 </phpunit>

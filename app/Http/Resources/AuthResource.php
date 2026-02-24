@@ -14,22 +14,25 @@ class AuthResource extends JsonResource
      */
 
     private $token;
+    private $refreshToken;
 
-    public function __construct($token, $resource)
+    public function __construct($token, $refreshToken, $resource)
     {
         parent::__construct($resource);
         $this->token = $token;
+        $this->refreshToken = $refreshToken;
     }
 
 
     public function toArray(Request $request): array
     {
         return [
-            'token' => $this->token,
-            'id'    => $this->id,
-            'email' => $this->email,
-            'role'  => $this->whenLoaded('role', fn() => $this->role->nama_role),
-            'name'  => $this->whenLoaded('userDetail', fn() => $this->userDetail->nama_user),
+            'token'         => $this->token,
+            'refresh_token' => $this->refreshToken,
+            'id'            => $this->id,
+            'email'         => $this->email,
+            'role'          => $this->whenLoaded('role', fn() => $this->role->nama_role),
+            'name'          => $this->whenLoaded('userDetail', fn() => $this->userDetail->nama_user),
         ];
     }
 }
