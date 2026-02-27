@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Api\Laporan;
 
 use App\Rules\TotalAttachmentRule;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

@@ -23,6 +23,7 @@ class CreateLaporanRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'id'                => ['sometimes', 'nullable', 'uuid', 'unique:laporan,id'],
             'periode'           => ['required', 'numeric', 'digits:4'],
             'bulan'             => ['required', 'string', Rule::in(['januari', 'februari', 'maret', 'april', 'mei', 'juni', 'juli', 'agustus', 'september', 'oktober', 'november', 'desember'])],
 

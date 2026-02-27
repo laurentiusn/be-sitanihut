@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Services\LaporanBulkService;
+use App\Http\Requests\Api\Laporan\CreateBulkLaporanRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+
+/** Class LaporanBulkController
+ * @package App\Http\Controllers\Api
+ */
+class LaporanBulkController extends Controller
+{
+    protected LaporanBulkService $bulkService;
+
+    /** LaporanBulkController constructor
+     * @param LaporanBulkService $bulkService
+     */
+    public function __construct(LaporanBulkService $bulkService)
+    {
+        $this->bulkService = $bulkService;
+    }
+
+    /** Membuat laporan massal
+     * @param CreateBulkLaporanRequest $request Validasi form array laporan
+     * @return JsonResponse Hasil eksekusi (Sukses vs Ditolak)
+     */
+    public function store(CreateBulkLaporanRequest $request): JsonResponse
+    {
+        try {
+            return response()->json([
+                'statusCode' => 201, 
+                'message'    => 'Laporan massal berhasil dibuat', 
+                'data'       => $this->bulkService->createBulk($request->validated()['laporan'], Auth::user(), $request->file('laporan') ?? [])
+            ], 201);
+        } catch (\Exception $e) {
+            return $this->handleError('Gagal menyimpan data', $e);
+        }
+    }
+
+    /** Standar Response Error
+     * @param string $message Pesan generik
+     * @param \Exception $e Objek Error Exception
+     * @return JsonResponse
+     */
+    private function handleError(string $message, \Exception $e): JsonResponse
+    {
+        return response()->json(['statusCode' => 500, 'message' => $message, 'error' => $e->getMessage()], 500);
+    }
+}

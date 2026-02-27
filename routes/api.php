@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\StatistikController;
 use App\Http\Controllers\Api\RekapNteController;
 use App\Http\Middleware\Admin;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Api\LaporanBulkController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -28,6 +28,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:api')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::apiResource('laporan', LaporanController::class);
+        Route::post('/laporan/bulk-create', [LaporanBulkController::class, 'store']);
         Route::apiResource('users', UserController::class);
         Route::apiResource('petani', PetaniController::class);
         Route::get('komoditas', [KomoditasController::class, 'index']);

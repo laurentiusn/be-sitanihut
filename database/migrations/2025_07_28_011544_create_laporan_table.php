@@ -19,7 +19,6 @@ return new class extends Migration
             $table->decimal('modal', 15, 2)->default(0);
             $table->decimal('nte', 15, 2)->default(0);
             $table->enum('status', ['belum diajukan', 'menunggu', 'diverifikasi', 'disetujui', 'ditolak'])->default('belum diajukan');
-            // $table->string('lampiran')->nullable();
             $table->date('tanggal_keputusan')->nullable();
             $table->date('tanggal_tindakan')->nullable();
             $table->date('tanggal_pengajuan')->nullable();
