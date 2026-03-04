@@ -8,6 +8,7 @@
         <testsuite name="Unit">
             <file>tests/Unit/RefreshTokenTest.php</file>
             <file>tests/Unit/LaporanBulkCreateTest.php</file>
+            <file>tests/Unit/LaporanBulkUpdateTest.php</file>
         </testsuite>
         <!-- <testsuite name="Feature">
             <directory>tests/Feature</directory>

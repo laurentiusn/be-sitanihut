@@ -29,6 +29,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::apiResource('laporan', LaporanController::class);
         Route::post('/laporan/bulk-create', [LaporanBulkController::class, 'store']);
+        Route::post('/laporan/bulk-update', [LaporanBulkController::class, 'update']);
         Route::apiResource('users', UserController::class);
         Route::apiResource('petani', PetaniController::class);
         Route::get('komoditas', [KomoditasController::class, 'index']);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\LaporanBulkService;
 use App\Http\Requests\Api\Laporan\CreateBulkLaporanRequest;
+use App\Http\Requests\Api\Laporan\UpdateBulkLaporanRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -37,6 +38,23 @@ class LaporanBulkController extends Controller
             ], 201);
         } catch (\Exception $e) {
             return $this->handleError('Gagal menyimpan data', $e);
+        }
+    }
+
+    /** Memperbarui laporan massal
+     * @param UpdateBulkLaporanRequest $request Validasi form update array
+     * @return JsonResponse
+     */
+    public function update(UpdateBulkLaporanRequest $request): JsonResponse
+    {
+        try {
+            return response()->json([
+                'statusCode' => 200, 
+                'message'    => 'Update laporan massal selesai', 
+                'data'       => $this->bulkService->updateBulk($request->validated()['laporan'], Auth::user(), $request->file('laporan') ?? [])
+            ], 200);
+        } catch (\Exception $e) {
+            return $this->handleError('Gagal memperbarui data', $e);
         }
     }
 
