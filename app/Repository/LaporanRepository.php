@@ -93,4 +93,13 @@ class LaporanRepository
     {
         DB::table('laporan')->where('id', $laporanId)->update($dataToUpdate);
     }
+
+    /** Mengambil laporan termasuk soft-deleted
+     * @param array $ids Array berisi daftar ID laporan
+     * @return Collection Koleksi objek Laporan yang key-nya adalah ID laporan
+     */
+    public function getByIdsWithTrashed(array $ids): Collection
+    {
+        return Laporan::withTrashed()->whereIn('id', $ids)->get()->keyBy('id');
+    }
 }

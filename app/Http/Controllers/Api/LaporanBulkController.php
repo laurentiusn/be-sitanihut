@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\LaporanBulkService;
 use App\Http\Requests\Api\Laporan\CreateBulkLaporanRequest;
 use App\Http\Requests\Api\Laporan\UpdateBulkLaporanRequest;
+use App\Http\Requests\Api\Laporan\DestroyBulkLaporanRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -55,6 +56,23 @@ class LaporanBulkController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return $this->handleError('Gagal memperbarui data', $e);
+        }
+    }
+
+    /** Menghapus laporan massal
+     * @param DestroyBulkLaporanRequest $request Validasi form hapus
+     * @return JsonResponse
+     */
+    public function destroy(DestroyBulkLaporanRequest $request): JsonResponse
+    {
+        try {
+            return response()->json([
+                'statusCode' => 200, 
+                'message'    => 'Penghapusan laporan massal selesai', 
+                'data'       => $this->bulkService->deleteBulk($request->validated()['laporan_ids'], Auth::user())
+            ], 200);
+        } catch (\Exception $e) {
+            return $this->handleError('Gagal menghapus data', $e);
         }
     }
 

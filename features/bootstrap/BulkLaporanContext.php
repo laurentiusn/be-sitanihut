@@ -610,4 +610,230 @@ class BulkLaporanContext implements Context
         Assert::assertGreaterThanOrEqual(1, count($sukses), "Harusnya ada yang masuk ke array sukses");
         Assert::assertGreaterThanOrEqual(1, count($ditolak), "Harusnya ada yang masuk ke array ditolak");
     }
+
+    //BULK-DELETE==============================================================================================
+
+    /**
+     * @Given Pengguna telah menentukan laporan-laporan yang ingin dihapus
+     */
+    public function penggunaTelahMenentukanLaporanLaporanYangInginDihapus()
+    {
+        $laporans = \App\Models\Laporan::factory()->count(2)->create([
+            'id_user' => $this->user->id,
+            'status' => 'belum diajukan'
+        ]);
+
+        // Request body hanya butuh array of UUIDs
+        $this->requestData = [
+            'laporan_ids' => [
+                $laporans[0]->id,
+                $laporans[1]->id
+            ]
+        ];
+    }
+
+    /**
+     * @When Pengguna ingin menghapus banyak laporan secara bersamaan
+     */
+    public function penggunaInginMenghapusBanyakLaporanSecaraBersamaan()
+    {
+        $kernel = app(\Illuminate\Contracts\Http\Kernel::class);
+        $request = Request::create(
+            '/api/v1/laporan/bulk-destroy', 
+            'POST', 
+            $this->requestData 
+        );
+
+        $request->headers->set('Accept', 'application/json');
+        $request->headers->set('Authorization', 'Bearer ' . $this->token);
+
+        $this->response = $kernel->handle($request);
+        $this->responseContent = json_decode($this->response->getContent(), true);
+    }
+
+    /**
+     * @Then Sistem memberikan pesan sukses bahwa laporan berhasil dihapus
+     */
+    public function sistemMemberikanPesanSuksesBahwaLaporanBerhasilDihapus()
+    {
+        Assert::assertEquals(200, $this->response->getStatusCode(), 'Status harus 200 OK');
+        $sukses = $this->responseContent['data']['sukses'] ?? [];
+        Assert::assertGreaterThanOrEqual(1, count($sukses), "Harusnya ada laporan yang berhasil masuk ke array sukses");
+    }
+
+    /**
+     * @Given Pengguna tidak menentukan laporan-laporan yang ingin dihapus
+     */
+    public function penggunaTidakMenentukanLaporanLaporanYangInginDihapus()
+    {
+        $this->requestData = [
+            'laporan_ids' => []
+        ];
+    }
+
+    /**
+     * @Then Sistem memberikan pesan error terkait minimal laporan yang ingin dihapus
+     */
+    public function sistemMemberikanPesanErrorTerkaitMinimalLaporanYangInginDihapus()
+    {
+        $errors = $this->responseContent['errors'] ?? [];
+        Assert::assertArrayHasKey('laporan_ids', $errors, 'Pesan error terkait minimal 1 laporan_ids harus muncul');
+    }
+
+    /**
+     * @Given Pengguna menyertakan laporan yang tidak ada di database
+     */
+    public function penggunaMenyertakanLaporanYangTidakAdaDiDatabase()
+    {
+        $this->idLaporanLain = \Illuminate\Support\Str::uuid()->toString();
+
+        $this->requestData = [
+            'laporan_ids' => [
+                $this->idLaporanLain
+            ]
+        ];
+    }
+
+    /**
+     * @Then Sistem memberikan pesan terkait laporan tidak ditemukan
+     */
+    public function sistemMemberikanPesanTerkaitLaporanTidakAda()
+    {
+        Assert::assertEquals(200, $this->response->getStatusCode());
+        $tidakDitemukan = $this->responseContent['data']['tidak_ditemukan'] ?? [];
+        
+        Assert::assertContains(
+            $this->idLaporanLain, 
+            $tidakDitemukan, 
+            "ID {$this->idLaporanLain} seharusnya masuk ke dalam array 'tidak_ditemukan'"
+        );
+    }
+
+    /**
+     * @Given Pengguna menentukan laporan-laporan yang ingin dihapus namun laporan milik petani lain
+     */
+    public function penggunaMenentukanLaporanLaporanYangInginDihapusNamunLaporanMilikPetaniLain()
+    {
+        $petaniLain = \App\Models\User::factory()->petani()->create();
+        $laporanOrangLain = \App\Models\Laporan::factory()->create([
+            'id_user' => $petaniLain->id,
+            'status' => 'belum diajukan'
+        ]);
+
+        $this->idLaporanLain = $laporanOrangLain->id;
+
+        $this->requestData = [
+            'laporan_ids' => [
+                $this->idLaporanLain
+            ]
+        ];
+    }
+
+    /**
+     * @Given Pengguna menyertakan laporan yang sebelumnya sudah dihapus
+     */
+    public function penggunaMenyertakanLaporanYangSebelumnyaSudahDihapus()
+    {
+        $laporanDihapus = \App\Models\Laporan::factory()->create([
+            'id_user' => $this->user->id,
+            'status' => 'belum diajukan'
+        ]);
+
+        $laporanDihapus->delete();
+        $this->idLaporanLain = $laporanDihapus->id;
+
+        $this->requestData = [
+            'laporan_ids' => [
+                $this->idLaporanLain
+            ]
+        ];
+    }
+
+    /**
+     * @Then Sistem memberikan pesan bahwa laporan tersebut bukan milik petani
+     */
+    public function sistemMemberitahuLaporanBukanMilikPetani()
+    {
+        Assert::assertEquals(200, $this->response->getStatusCode(), 'Status harus tetap 200 (Partial Success)');
+        $idDitolak = $this->responseContent['data']['ditolak'][0]['id'] ?? [];
+        $pesanDitolak = $this->responseContent['data']['ditolak'][0]['alasan'];
+        Assert::assertNotNull($this->responseContent['data']['ditolak']);
+        Assert::assertEquals($this->idLaporanLain, $idDitolak, 'Id Laporan tidak sama');
+        Assert::assertEquals("Akses ditolak: Laporan ini milik petani lain.", $pesanDitolak, 'Pesan tidak ada');
+    }
+
+    /**
+     * @Then Sistem memberikan pesan terkait laporan sudah dihapus sebelumnya
+     */
+    public function sistemMemberikanPesanTerkaitLaporanSudahDihapusSebelumnya()
+    {
+        Assert::assertEquals(200, $this->response->getStatusCode());
+        $sudahDihapus = $this->responseContent['data']['sudah_dihapus_sebelumnya'] ?? [];
+        
+        Assert::assertContains(
+            $this->idLaporanLain, 
+            $sudahDihapus, 
+            "ID laporan yang sudah di-soft-delete harusnya masuk ke array 'sudah_dihapus_sebelumnya'"
+        );
+    }
+
+    /**
+     * @Given Pengguna menentukan laporan-laporan yang ingin dihapus namun laporan berstatus selain 'belum diajukan' atau 'ditolak'
+     */
+    public function penggunaMenentukanLaporanLaporanYangInginDihapusNamunLaporanBerstatusSelainBelumDiajukan()
+    {
+        $laporanDiproses = \App\Models\Laporan::factory()->create([
+            'id_user' => $this->user->id,
+            'status' => 'menunggu' // Status yang tidak boleh dihapus
+        ]);
+
+        $this->idLaporanLain = $laporanDiproses->id;
+
+        $this->requestData = [
+            'laporan_ids' => [
+                $this->idLaporanLain
+            ]
+        ];
+    }
+
+    /**
+     * @Given Pengguna menentukan laporan-laporan yang ingin dihapus namun hanya beberapa laporan yang valid
+     */
+    public function penggunaMenentukanLaporanLaporanYangInginDihapusNamunHanyaBeberapaLaporanYangValid()
+    {
+        $laporanValid = \App\Models\Laporan::factory()->create([
+            'id_user' => $this->user->id,
+            'status' => 'belum diajukan'
+        ]);
+
+        $laporanInvalid = \App\Models\Laporan::factory()->create([
+            'id_user' => $this->user->id,
+            'status' => 'menunggu'
+        ]);
+
+        $this->requestData = [
+            'laporan_ids' => [
+                $laporanValid->id,
+                $laporanInvalid->id,
+                \Illuminate\Support\Str::uuid()->toString() // ID tidak ditemukan
+            ]
+        ];
+    }
+
+    /**
+     * @Then Sistem memberitau bahwa terdapat laporan yang berhasil dihapus dan laporan yang tidak berhasil dihapus
+     */
+    public function sistemMemberitauBahwaTerdapatLaporanYangBerhasilDihapusDanLaporanYangTidakBerhasilDihapus()
+    {
+        Assert::assertEquals(200, $this->response->getStatusCode());
+        
+        $sukses = $this->responseContent['data']['sukses'] ?? [];
+        $ditolak = $this->responseContent['data']['ditolak'] ?? [];
+        $tidakDitemukan = $this->responseContent['data']['tidak_ditemukan'] ?? [];
+        
+        // Memastikan payload campuran tadi diproses dan masuk ke array masing-masing
+        Assert::assertGreaterThanOrEqual(1, count($sukses), "Harusnya ada yang berhasil");
+        Assert::assertGreaterThanOrEqual(1, count($ditolak), "Harusnya ada yang masuk ditolak karena status menunggu");
+        Assert::assertGreaterThanOrEqual(1, count($tidakDitemukan), "Harusnya ada yang tidak ditemukan");
+    }
 }
