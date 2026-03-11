@@ -29,7 +29,8 @@ class CreateKthRequest extends FormRequest
             'kabupaten'   => 'required|string|max:35',
             'koordinator' => 'required|string|max:35',
             'nomor_wa'    => 'required|string|max:15',
-            'id_kph'      => [Rule::requiredIf($this->user()->hasRole('sekretariat')), 'string', 'exists:kph,id']
+            'id_penyuluh' => ['nullable', 'uuid', 'exists:users,id'],
+            'id_kph'      => [Rule::requiredIf($this->user()->hasRole('sekretariat')), 'uuid', 'exists:kph,id']
         ];
     }
 

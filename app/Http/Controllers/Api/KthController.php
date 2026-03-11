@@ -8,20 +8,22 @@ use App\Http\Requests\Api\Kth\UpdateKthRequest;
 use App\Http\Resources\Kth\KthDetailResource;
 use App\Http\Resources\Kth\KthResource;
 use App\Http\Resources\PostResource;
-use App\Models\Kph;
 use App\Models\Kth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Services\KthService;
 
 class KthController extends Controller
 {
     use AuthorizesRequests;
 
-    public function __construct()
+    protected KthService $kthService;
+
+    public function __construct(KthService $kthService)
     {
-        // $this->authorizeResource(Kth::class, 'kth');
+        $this->kthService = $kthService;
     }
 
     /**
@@ -40,28 +42,16 @@ class KthController extends Controller
         ]);
 
         $user = $request->user();
-        //Nama - Desa - Kabupaten - Asal Kph - Koordinator
-        //Take data KTH include id_kph and nama_kph
-        $query = Kth::with('kph:id,nama_kph');
+        
+        // Eager Load
+        $query = Kth::with([
+            'kph:id,nama_kph',
+            'penyuluh:id', 
+            'penyuluh.userDetail:id_user,nama_user']);
 
         if($user->hasRole('penyuluh')) {
-            $query->where('id_kph', $user->id_kph);
+            $query->where('id_penyuluh', $user->id);
         }
-
-        //Transform data format
-        // $query = $data->map(function ($item) {
-        //     return [
-        //         'id'           => $item->id,
-        //         'nama_kth'     => $item->nama_kth,
-        //         'desa'         => $item->desa,
-        //         'kabupaten'    => $item->kabupaten,
-        //         'koordinator'  => $item->koordinator,
-        //         'id_kph'       => $item->id_kph,
-        //         'asal_kph'     => $item->kph->nama_kph ?? null,
-        //         'created_at'   => $item->created_at,
-        //         'updated_at'   => $item->updated_at
-        //     ];
-        // });
 
         //Search
         $query->when($request->filled('search'), function ($q) use ($request) {
@@ -70,6 +60,9 @@ class KthController extends Controller
                 $subQuery->where('nama_kth', 'like', "%{$search}%")
                       ->orWhere('desa', 'like', "%{$search}%")
                       ->orWhere('kabupaten', 'like', "%{$search}%")
+                      ->orWhereHas('kph', function ($kphQuery) use ($search) {
+                            $kphQuery->where('nama_kph', 'like', "%{$search}%");
+                        })
                       ->orWhere('koordinator', 'like', "%{$search}%");
             });
         });
@@ -99,13 +92,6 @@ class KthController extends Controller
                 'count'      => $paginator->total(),
             ]
         ], 200);
-
-        // return new PostResource(
-        //     'Data KTH berhasil diambil', 
-        //     200, 
-        //     KthResource::collection($kths)
-        // );
-        
     } 
 
     /**
@@ -115,28 +101,22 @@ class KthController extends Controller
     {
         $this->authorize('create', Kth::class);
         $validatedData = $request->validated();
+        $user = $request->user();
 
-        if($request->user()->hasRole('penyuluh')) {
-            $validatedData['id_kph'] = $request->user()->id_kph;
-        }
+        $data = $this->kthService->createCheck($validatedData, $user);
 
-        // $kph = Kph::select('id')->where('nama_kph', $validatedData['nama_kph'])->first();
+        $kth = Kth::create($data);
 
-        $kth = Kth::create([
-            'nama_kth'    => $validatedData['nama_kth'],
-            'desa'        => $validatedData['desa'],
-            'kecamatan'   => $validatedData['kecamatan'],
-            'kabupaten'   => $validatedData['kabupaten'],
-            'koordinator' => $validatedData['koordinator'],
-            'nomor_wa'    => $validatedData['nomor_wa'],
-            'id_kph'      => $validatedData['id_kph'],
+        $kth->load([
+            'kph:id,nama_kph', 
+            'penyuluh:id', 
+            'penyuluh.userDetail:id_user,nama_user'
         ]);
 
-        return new PostResource(
+        return (new PostResource(
             'Data KTH berhasil ditambah',
             201,
-            new KthDetailResource($kth->load('kph'))
-        );
+            new KthDetailResource($kth)))->response()->setStatusCode(201);
     }
 
     /**
@@ -145,7 +125,11 @@ class KthController extends Controller
     public function show(Kth $kth)
     {
         $this->authorize('view', $kth);
-        $kth->load('kph');
+        $kth->load([
+            'kph:id,nama_kph', 
+            'penyuluh:id', 
+            'penyuluh.userDetail:id_user,nama_user'
+        ]);
 
         return new PostResource(
             'Data KTH berhasil diambil', 
@@ -161,23 +145,21 @@ class KthController extends Controller
     {
         $this->authorize('update', $kth);
         $validatedData = $request->validated();
+        $user = $request->user();
 
-        // if(isset($validatedData['nama_kph'])) {
-        //     $kph = Kph::select('id')->where('nama_kph', $validatedData['nama_kph'])->firstOrFail();
-        //     $validatedData['id_kph'] = $kph->id;
-        //     unset($validatedData['nama_kph']);
-        // }
+        $data = $this->kthService->updateCheck($validatedData, $user, $kth);
+        $kth->update($data);
 
-        if ($request->user()->hasRole('penyuluh')) {
-            unset($validatedData['id_kph']);
-        }
-
-        $kth->update($validatedData);
+        $kth->refresh()->load([
+            'kph:id,nama_kph', 
+            'penyuluh:id', 
+            'penyuluh.userDetail:id_user,nama_user'
+        ]);
 
         return new PostResource(
             'Data KTH berhasil diupdate',
             200,
-            new KthDetailResource($kth->fresh()->load('kph'))
+            new KthDetailResource($kth)
         );
     }
 
@@ -189,10 +171,10 @@ class KthController extends Controller
         $this->authorize('delete', $kth);
         $kth->delete();
 
-        return new PostResource(
+        return (new PostResource(
             'Data KTH berhasil dihapus',
             200,
             null
-        );
+        ))->response()->setStatusCode(200);
     }
 }

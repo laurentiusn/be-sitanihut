@@ -26,6 +26,10 @@ class KthDetailResource extends JsonResource
             'asal_kph'    => $this->whenLoaded('kph', function () {
                 return $this->kph->nama_kph;
             }),
+            'id_penyuluh' => $this->id_penyuluh,
+            'nama_penyuluh' => $this->whenLoaded('penyuluh', function(){
+                return $this->penyuluh->userDetail->nama_user ?? null;
+            }),
         ];
     }
 }

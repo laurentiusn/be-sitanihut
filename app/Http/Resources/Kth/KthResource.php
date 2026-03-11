@@ -15,14 +15,18 @@ class KthResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'          => $this->id,
-            'nama_kth'    => $this->nama_kth,
-            'desa'        => $this->desa,
-            'kabupaten'   => $this->kabupaten,
-            'koordinator' => $this->koordinator,
-            'id_kph'      => $this->id_kph,
-            'asal_kph'    => $this->whenLoaded('kph', function () {
+            'id'            => $this->id,
+            'nama_kth'      => $this->nama_kth,
+            'desa'          => $this->desa,
+            'kabupaten'     => $this->kabupaten,
+            'koordinator'   => $this->koordinator,
+            'id_kph'        => $this->id_kph,
+            'asal_kph'      => $this->whenLoaded('kph', function () {
                 return $this->kph->nama_kph;
+            }),
+            'id_penyuluh'   => $this->id_penyuluh,
+            'nama_penyuluh' => $this->whenLoaded('penyuluh', function () {
+                return $this->penyuluh->userDetail->nama_user ?? null;
             }),
         ];
     }

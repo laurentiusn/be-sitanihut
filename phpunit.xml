@@ -10,6 +10,7 @@
             <file>tests/Unit/LaporanBulkCreateTest.php</file>
             <file>tests/Unit/LaporanBulkUpdateTest.php</file>
             <file>tests/Unit/LaporanBulkDeleteTest.php</file>
+            <file>tests/Unit/KthPembagianPenyuluhTest.php</file>
         </testsuite>
         <!-- <testsuite name="Feature">
             <directory>tests/Feature</directory>

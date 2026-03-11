@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Kth;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class KthPolicy
 {
@@ -33,7 +32,7 @@ class KthPolicy
             return true;
         }
         if ($user->hasRole('penyuluh')){
-            return $user->id_kph === $kth->id_kph;
+            return $user->id === $kth->id_penyuluh;
         }
         return false;
     }
@@ -52,7 +51,7 @@ class KthPolicy
     public function update(User $user, Kth $kth): bool
     {
         if ($user->hasRole('penyuluh')) {
-            return $user->id_kph === $kth->id_kph;
+            return $user->id === $kth->id_penyuluh;
         }
         return false;
     }
@@ -63,7 +62,7 @@ class KthPolicy
     public function delete(User $user, Kth $kth): bool
     {
         if ($user->hasRole('penyuluh')) {
-            return $user->id_kph === $kth->id_kph;
+            return $user->id === $kth->id_penyuluh;
         }
         return false;
     }

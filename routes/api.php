@@ -35,7 +35,8 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('petani', PetaniController::class);
         Route::get('komoditas', [KomoditasController::class, 'index']);
         Route::get('komoditas/{komoditas}', [KomoditasController::class, 'show']);
-        // Route::get('rekap/nte', [RekapNteController::class, 'index']);
+        Route::apiResource('kth', KthController::class);
+        Route::get('/role', [RoleController::class, 'index']);
 
         //Admin = Sekretariat & Auditor
         Route::middleware(Admin::class)->group(function () {

@@ -29,11 +29,12 @@ class UpdateKthRequest extends FormRequest
             'kabupaten'   => 'sometimes|required|string|max:35',
             'koordinator' => 'sometimes|required|string|max:35',
             'nomor_wa'    => 'sometimes|required|string|max:15',
+            'id_penyuluh' => ['nullable', 'uuid', 'exists:users,id'],
             'id_kph'      => [
+                'sometimes',
                 Rule::requiredIf(fn() => $this->user()->hasRole('sekretariat')),
-                'string',
-                'exists:kph,id',
-                // Rule::when(!$this->user()->hasRole('sekretariat'), 'prohibited')
+                'uuid',
+                'exists:kph,id'
             ]
         ];
     }
