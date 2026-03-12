@@ -11,6 +11,7 @@
             <file>tests/Unit/LaporanBulkUpdateTest.php</file>
             <file>tests/Unit/LaporanBulkDeleteTest.php</file>
             <file>tests/Unit/KthPembagianPenyuluhTest.php</file>
+            <file>tests/Unit/RekapProduksiTest.php</file>
         </testsuite>
         <!-- <testsuite name="Feature">
             <directory>tests/Feature</directory>
