@@ -186,4 +186,145 @@ class RekapContext implements Context
         Assert::assertArrayHasKey('komoditas', $data[0], "Key 'komoditas' tidak ditemukan di response.");
         Assert::assertArrayHasKey('produksi', $data[0], "Key 'produksi' tidak ditemukan di response.");
     }
+
+    //Export=====================================================================================================================================
+
+    /**
+     * @When Pengguna ingin download rekapitulasi NTE tiap :type menjadi file :format
+     */
+    public function penggunaInginDownloadRekapitulasiNteTiapTypeMenjadiFileExport($type, $format)
+    {
+        $this->siapkanDataProduksiNteDummy();
+        $this->endpoint = '/api/v1/rekap/export';
+        $this->exportPayload = ['type' => strtolower($type), 'export' => strtolower($format), 'periode' => 2026];
+        $this->eksekusiGetRequest();
+    }
+
+    /**
+     * @When Pengguna ingin download rekapitulasi NTE dengan type yang tidak valid
+     */
+    public function penggunaInginDownloadRekapitulasiNteDenganTypeYangTidakValid()
+    {
+        $this->endpoint = '/api/v1/rekap/export';
+        $this->exportPayload = ['type' => 'tipe_salah', 'export' => 'pdf', 'periode' => 2026];
+        $this->eksekusiGetRequest();
+    }
+
+    /**
+     * Eksekutor khusus untuk metode GET (Export)
+     */
+    protected function eksekusiGetRequest()
+    {
+        $kernel = app(\Illuminate\Contracts\Http\Kernel::class);
+        $request = Request::create($this->endpoint, 'GET', $this->exportPayload);
+        $request->headers->set('Accept', 'application/json');
+        
+        if ($this->token) {
+            $request->headers->set('Authorization', 'Bearer ' . $this->token);
+        }
+
+        $this->response = $kernel->handle($request);
+        
+        $contentType = $this->response->headers->get('Content-Type');
+        if (str_contains($contentType, 'application/json')) {
+            $this->responseContent = json_decode($this->response->getContent(), true);
+        } else {
+            $this->responseContent = null; 
+        }
+    }
+
+    /**
+     * @Then Terdapat file pdf yang terdownload
+     */
+    public function terdapatFilePdfYangTerdownload()
+    {
+        $contentType = $this->response->headers->get('Content-Type');
+        Assert::assertStringContainsString('application/pdf', $contentType, 'Sistem gagal mengirimkan file PDF.');
+        
+        $content = $this->response->getContent();
+        Assert::assertNotEmpty($content, 'File PDF yang di-generate kosong.');
+
+        $parser = new \Smalot\PdfParser\Parser();
+        $pdfDocument = $parser->parseContent($content);
+        $pdfText = $pdfDocument->getText(); 
+
+        Assert::assertStringContainsString('No', $pdfText, 'Gagal: Header No tidak ada');
+        Assert::assertStringContainsString('Produksi', $pdfText, 'Gagal: Header Produksi tidak ada');
+        Assert::assertStringContainsString('Total NTE', $pdfText, 'Gagal: Header Total NTE tidak ada');
+        Assert::assertStringContainsString('GRAND TOTAL KESELURUHAN', $pdfText);
+
+        $type = $this->exportPayload['type'];
+        if ($type === 'kph') {
+            Assert::assertStringContainsString('Nama KPH', $pdfText, 'Gagal: Header Nama KPH tidak ada');
+        } elseif ($type === 'kth') {
+            Assert::assertStringContainsString('Nama KPH', $pdfText, 'Gagal: Header Nama KPH tidak ada');
+            Assert::assertStringContainsString('Nama KTH', $pdfText, 'Gagal: Header Nama KTH tidak ada');
+        } elseif ($type === 'petani') {
+            Assert::assertStringContainsString('Nama KPH', $pdfText, 'Gagal: Header Nama KPH tidak ada');
+            Assert::assertStringContainsString('Nama KTH', $pdfText, 'Gagal: Header Nama KTH tidak ada');
+            Assert::assertStringContainsString('Nama Petani', $pdfText, 'Gagal: Header Nama Petani tidak ada');
+        } elseif ($type === 'komoditas') {
+            Assert::assertStringContainsString('Nama Komoditas', $pdfText, 'Gagal: Header Nama Komoditas tidak ada');
+        }
+    }
+
+    /**
+     * @Then Terdapat file csv yang terdownload
+     */
+    public function terdapatFileCsvYangTerdownload()
+    {
+        $contentType = $this->response->headers->get('Content-Type');
+        
+        // 1. Cek Header aman tanpa crash
+        if (strpos($contentType, 'text/csv') === false) {
+            throw new \Exception("Sistem gagal mengirimkan file CSV. Content-Type yang didapat: " . $contentType);
+        }
+        
+        $content = '';
+        if ($this->response instanceof \Symfony\Component\HttpFoundation\StreamedResponse) {
+            ob_start();
+            $this->response->sendContent();
+            $content = ob_get_clean();
+        } else {
+            $content = $this->response->getContent();
+        }
+        
+        // 3. Cek isi konten aman tanpa crash
+        if (strpos($content, 'REKAP NILAI TRANSAKSI EKONOMI') === false) {
+            throw new \Exception(
+                "Format CSV tidak sesuai ekspektasi. \nIsi konten yang didapat (100 karakter pertama):\n" . 
+                substr($content, 0, 100)
+            );
+        }
+
+        Assert::assertStringContainsString('Produksi', $content, 'Gagal: Header Produksi tidak ada');
+        Assert::assertStringContainsString('Total NTE', $content, 'Gagal: Header Total NTE tidak ada');
+        Assert::assertStringContainsString('GRAND TOTAL KESELURUHAN', $content);
+
+        $type = $this->exportPayload['type'] ?? 'petani';
+        if ($type === 'kph') {
+            Assert::assertStringContainsString('Nama KPH', $content, 'Gagal: Header Nama KPH tidak ada');
+        } elseif ($type === 'kth') {
+            Assert::assertStringContainsString('Nama KPH', $content, 'Gagal: Header Nama KPH tidak ada');
+            Assert::assertStringContainsString('Nama KTH', $content, 'Gagal: Header Nama KTH tidak ada');
+        } elseif ($type === 'petani') {
+            Assert::assertStringContainsString('Nama KPH', $content, 'Gagal: Header Nama KPH tidak ada');
+            Assert::assertStringContainsString('Nama KTH', $content, 'Gagal: Header Nama KTH tidak ada');
+            Assert::assertStringContainsString('Nama Petani', $content, 'Gagal: Header Nama Petani tidak ada');
+        } elseif ($type === 'komoditas') {
+            Assert::assertStringContainsString('Komoditas', $content, 'Gagal: Header Komoditas tidak ada');
+        }
+    }
+
+    /**
+     * @Then Sistem memberikan pesan error terkait parameter type yang tidak valid
+     */
+    public function sistemMemberikanPesanErrorTerkaitParameterTypeYangTidakValid()
+    {
+        $status = $this->response->getStatusCode();
+        Assert::assertEquals(422, $status, "Sistem seharusnya menolak dengan 422 Unprocessable Entity karena validasi type gagal. Didapat: $status\nResponse: " . json_encode($this->responseContent));
+        
+        $errors = $this->responseContent['errors'] ?? [];
+        Assert::assertArrayHasKey('type', $errors, "Pesan error validasi untuk 'type' tidak ditemukan.");
+    }
 }

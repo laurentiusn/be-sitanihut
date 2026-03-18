@@ -38,6 +38,13 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('kth', KthController::class);
         Route::get('/role', [RoleController::class, 'index']);
 
+        //Sekretariat Middleware
+        Route::middleware(Sekretariat::class)->group(function () {
+            Route::apiResource('kph', KphController::class)->except(['index', 'show']);
+            Route::apiResource('penyuluh', PenyuluhController::class)->except(['index', 'show']);
+            Route::apiResource('komoditas', KomoditasController::class)->except(['index', 'show'])->parameters(['komoditas' => 'komoditas']);
+        });
+
         //Admin = Sekretariat & Auditor
         Route::middleware(Admin::class)->group(function () {
             Route::apiResource('kph', KphController::class)->only(['show']);
@@ -45,15 +52,7 @@ Route::prefix('v1')->group(function () {
             Route::get('logs/laporan', [LogLaporanController::class, 'index']);
             Route::get('statistik', [StatistikController::class, 'index']);
             Route::get('rekap/nte', [RekapNteController::class, 'index']);
+            Route::get('rekap/export', [RekapNteController::class, 'export']);
         });
-
-        //Sekretariat Middleware
-        Route::middleware(Sekretariat::class)->group(function () {
-            Route::apiResource('kph', KphController::class)->except(['index', 'show']);
-            Route::apiResource('penyuluh', PenyuluhController::class)->except(['index', 'show']);
-            Route::apiResource('komoditas', KomoditasController::class)->except(['index', 'show'])->parameters(['komoditas' => 'komoditas']);
-        });
-        Route::apiResource('kth', KthController::class);
-        Route::get('/role', [RoleController::class, 'index']);
     });
 });

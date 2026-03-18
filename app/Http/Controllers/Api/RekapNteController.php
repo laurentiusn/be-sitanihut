@@ -7,6 +7,7 @@ use App\Http\Requests\Api\Rekap\RekapNteRequest;
 use App\Http\Resources\RekapNteResource;
 use App\Services\RekapNteService;
 use Illuminate\Http\JsonResponse;
+use App\Http\Requests\Api\Rekap\RekapExportRequest;
 
 /** Class RekapNteController
  * @package App\Http\Controllers\Api
@@ -51,5 +52,23 @@ class RekapNteController extends Controller
                 ],
             ]
         ], 200);
+    }
+
+    /** Ekspor hasil rekapitulasi
+     * @param RekapExportRequest $request Formulir request validasi (Mencakup penentuan format ekspor)
+     * @return mixed Stream Response / Binary File Download / JsonResponse (Bila gagal)
+     */
+    public function export(RekapExportRequest $request)
+    {
+        $validated = $request->validated();
+        
+        try {
+            return $this->rekapNteService->handleExport($validated);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'statusCode' => 400,
+                'message'    => $e->getMessage(),
+            ], 400);
+        }
     }
 }
