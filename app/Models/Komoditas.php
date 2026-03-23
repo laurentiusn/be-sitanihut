@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/** Class Komoditas Model ORM
+ * @package App\Models
+ */
 class Komoditas extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
@@ -17,17 +20,25 @@ class Komoditas extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
+        'id',
         'kode',
         'nama_komoditas',
         'jenis_komoditas',
-        'nte'
+        'nte',
+        'komoditas_kehutanan',
     ];
 
+    /** Relasi ke entitas MasaPanen
+     * @return HasMany
+     */
     public function masaPanen(): HasMany
     {
         return $this->hasMany(MasaPanen::class, 'id_komoditas');
     }
 
+    /** Relasi ke entitas MasaTanam
+     * @return HasMany
+     */
     public function masaTanam(): HasMany
     {
         return $this->hasMany(MasaTanam::class, 'id_komoditas');

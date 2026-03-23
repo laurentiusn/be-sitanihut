@@ -10,3 +10,4 @@ default:
         - BulkLaporanContext
         - KthPembagianPenyuluhContext
         - RekapContext
+        - KomoditasImportContext

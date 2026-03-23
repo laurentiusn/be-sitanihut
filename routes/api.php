@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\RekapNteController;
 use App\Http\Middleware\Admin;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\LaporanBulkController;
+use App\Http\Controllers\Api\ImportController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -43,6 +44,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('kph', KphController::class)->except(['index', 'show']);
             Route::apiResource('penyuluh', PenyuluhController::class)->except(['index', 'show']);
             Route::apiResource('komoditas', KomoditasController::class)->except(['index', 'show'])->parameters(['komoditas' => 'komoditas']);
+            Route::post('/komoditas/import', [ImportController::class, 'komoditasImport']);
         });
 
         //Admin = Sekretariat & Auditor

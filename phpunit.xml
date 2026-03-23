@@ -13,6 +13,7 @@
             <file>tests/Unit/KthPembagianPenyuluhTest.php</file>
             <file>tests/Unit/RekapProduksiTest.php</file>
             <file>tests/Unit/RekapExportTest.php</file>
+            <file>tests/Unit/ImportKomoditasTest.php</file>
         </testsuite>
         <!-- <testsuite name="Feature">
             <directory>tests/Feature</directory>

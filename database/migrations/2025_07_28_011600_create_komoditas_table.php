@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('nama_komoditas', 50);
             $table->string('jenis_komoditas', 30);
             $table->decimal('nte', 15, 2)->default(0);
+            $table->boolean('komoditas_kehutanan')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });
