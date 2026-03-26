@@ -11,3 +11,4 @@ default:
         - KthPembagianPenyuluhContext
         - RekapContext
         - KomoditasImportContext
+        - KthImportContext

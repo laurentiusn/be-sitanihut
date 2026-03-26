@@ -45,6 +45,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('penyuluh', PenyuluhController::class)->except(['index', 'show']);
             Route::apiResource('komoditas', KomoditasController::class)->except(['index', 'show'])->parameters(['komoditas' => 'komoditas']);
             Route::post('/komoditas/import', [ImportController::class, 'komoditasImport']);
+            Route::post('/kth/import', [ImportController::class, 'kthImport']);
         });
 
         //Admin = Sekretariat & Auditor
