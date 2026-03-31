@@ -9,6 +9,8 @@ use App\Http\Requests\Api\Import\KomoditasImportRequest;
 use App\Imports\KomoditasImport;
 use App\Http\Requests\Api\Import\KthImportRequest;
 use App\Imports\KthImport;
+use App\Http\Requests\Api\Import\UserImportRequest;
+use App\Imports\UserImport;
 
 /** Class ImportController
  * @package App\Http\Controllers\Api
@@ -53,6 +55,24 @@ class ImportController extends Controller
             new KthImport(),
             ['nama_kth', 'desa', 'kecamatan', 'kabupaten', 
             'koordinator', 'nomor_wa','id_kph','id_penyuluh']
+        );
+    }
+
+    /** Import data User
+     * @param UserImportRequest $request
+     * @return JsonResponse
+     */
+    public function userImport(UserImportRequest $request): JsonResponse
+    {
+        $request->validated();
+
+        return $this->importService->handleImport(
+            $request->file('file'),
+            new UserImport,
+            ['email', 'password', 'id_role', 'id_kph', 'id_kth',
+            'nama_user', 'nomor_induk', 'jenis_kelamin', 'alamat',
+            'nomor_wa', 'pendidikan_terakhir', 'pekerjaan_sampingan',
+            'luas_lahan', 'jabatan']
         );
     }
 }

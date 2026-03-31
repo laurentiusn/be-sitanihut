@@ -12,3 +12,4 @@ default:
         - RekapContext
         - KomoditasImportContext
         - KthImportContext
+        - UserImportContext

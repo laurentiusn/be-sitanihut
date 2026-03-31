@@ -46,6 +46,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('komoditas', KomoditasController::class)->except(['index', 'show'])->parameters(['komoditas' => 'komoditas']);
             Route::post('/komoditas/import', [ImportController::class, 'komoditasImport']);
             Route::post('/kth/import', [ImportController::class, 'kthImport']);
+            Route::post('/users/import', [ImportController::class, 'userImport']);
         });
 
         //Admin = Sekretariat & Auditor
