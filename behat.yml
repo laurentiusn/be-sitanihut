@@ -13,3 +13,4 @@ default:
         - KomoditasImportContext
         - KthImportContext
         - UserImportContext
+        - StatistikContext

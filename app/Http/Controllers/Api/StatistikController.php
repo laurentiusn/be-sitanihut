@@ -2,26 +2,50 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\RoleHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Kph;
 use App\Models\Kth;
 use App\Models\Laporan;
 use App\Models\MasaPanen;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use App\Services\StatistikService;
 
+/**
+ * Class StatistikController
+ * 
+ * Controller untuk menyediakan ragam titik akhir (*endpoints*) komputasi statistik analitik.
+ * Berperan sentral dalam mensuplai *Dashboard* utama dengan agregat data silang dari beberapa tabel.
+ *
+ * @package App\Http\Controllers\Api
+ */
 class StatistikController extends Controller
 {
+    protected StatistikService $statistikService;
+
     /**
-     * Get summary statistics for the dashboard.
-     * This endpoint is intended for Sekretariat use only.
+     * StatistikController Constructor.
+     * 
+     * @param StatistikService $statistikService Layanan bisnis yang membawahi *query* kompleks.
+     */
+    public function __construct(StatistikService $statistikService)
+    {
+        $this->statistikService = $statistikService;
+    }
+
+    /**
+     * Menjalankan serangkaian komputasi basis data secara komprehensif.
+     * Termasuk: Pengelompokkan demografi Petani/Penyuluh berdasar gender, daftar *top performer* KTH,
+     * serta pemeringkatan omset NTE dan volume komoditas. Seluruh *response* dikompilasi ke dalam satu balasan JSON.
+     *
+     * @return JsonResponse
      */
     public function index(): JsonResponse
     {
-        $rolePetaniId = Role::where('slug', 'petani')->value('id');
-        $rolePenyuluhId = Role::where('slug', 'penyuluh')->value('id');
+        $rolePetaniId = RoleHelper::id('petani');
+        $rolePenyuluhId = RoleHelper::id('penyuluh');
 
         if (!$rolePetaniId || !$rolePenyuluhId) {
             return response()->json([
@@ -107,7 +131,6 @@ class StatistikController extends Controller
             ->limit(10)
             ->get()
             ->map(function ($item) {
-                // This number formatting logic is still correct and needed.
                 $totalJumlah = (float)$item->total_volume;
                 $item->total_volume = ($totalJumlah == (int)$totalJumlah) ? (int)$totalJumlah : $totalJumlah;
                 return $item;
@@ -133,6 +156,8 @@ class StatistikController extends Controller
                 return $item;
             });
 
+        $rangeUmurPetani = $this->statistikService->getRangeUmurPetani($rolePetaniId);
+
         $data = [
             'jumlah_petani'     => $jumlahPetani,
             'jumlah_kph'        => $jumlahKph,
@@ -141,7 +166,8 @@ class StatistikController extends Controller
             'petani_per_kph'    => $petaniPerKph,
             'top_10_kth_by_nte' => $top10KthByNte,
             'top_10_komoditas_by_volume'  => $top10KomoditasByVolume,
-            'top_10_komoditas_by_nte' => $top10KomoditasByNte
+            'top_10_komoditas_by_nte' => $top10KomoditasByNte,
+            'range_umur_petani' => $rangeUmurPetani,
         ];
 
         return response()->json([
