@@ -17,6 +17,8 @@ use App\Http\Middleware\Admin;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\LaporanBulkController;
 use App\Http\Controllers\Api\ImportController;
+use App\Http\Middleware\PJ_Penyuluh;
+use App\Http\Controllers\Api\UserPetaniController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -57,6 +59,12 @@ Route::prefix('v1')->group(function () {
             Route::get('statistik', [StatistikController::class, 'index']);
             Route::get('rekap/nte', [RekapNteController::class, 'index']);
             Route::get('rekap/export', [RekapNteController::class, 'export']);
+        });
+
+        //PJ_Penyuluh = Admin + PJ + Penyuluh
+        Route::middleware(PJ_Penyuluh::class)->group(function () {
+            Route::get('user-petani', [UserPetaniController::class, 'index']);
+            Route::get('user-petani/{user}', [UserPetaniController::class, 'show']);
         });
     });
 });

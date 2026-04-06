@@ -17,6 +17,7 @@
             <file>tests/Unit/ImportKthTest.php</file>
             <file>tests/Unit/ImportUserTest.php</file>
             <file>tests/Unit/StatistikUmurPetaniTest.php</file>
+            <file>tests/Unit/UserPetaniTest.php</file>
         </testsuite>
         <!-- <testsuite name="Feature">
             <directory>tests/Feature</directory>

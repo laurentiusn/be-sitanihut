@@ -14,3 +14,4 @@ default:
         - KthImportContext
         - UserImportContext
         - StatistikContext
+        - UserPetaniContext

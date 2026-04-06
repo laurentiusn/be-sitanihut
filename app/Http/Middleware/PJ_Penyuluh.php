@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class Penyuluh
+class PJ_Penyuluh
 {
     /**
      * Handle an incoming request.
@@ -16,10 +16,9 @@ class Penyuluh
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user()->hasRole('penyuluh')) {
+        if (!$request->user()->hasRole('sekretariat') && !$request->user()->hasRole('auditor') && !$request->user()->hasRole('penanggung-jawab') && !$request->user()->hasRole('penyuluh')) {
             throw new PostException('Unauthorized access', 403);
         }
-
         return $next($request);
     }
 }
