@@ -77,6 +77,9 @@ class UserService
         }
 
         switch ($targetRoleSlug) {
+            case 'penyuluh':
+                return $currentUser->hasRole('penanggung-jawab') && $currentUser->id_kph === $targetUser->id_kph;
+
             case 'petani':
                 if ($currentUser->hasRole('penanggung-jawab') && $currentUser->id_kph === $targetUser->id_kph) {
                     return true;
