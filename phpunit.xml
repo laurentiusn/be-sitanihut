@@ -19,6 +19,7 @@
             <file>tests/Unit/StatistikUmurPetaniTest.php</file>
             <file>tests/Unit/UserPetaniTest.php</file>
             <file>tests/Unit/UserPenyuluhTest.php</file>
+            <file>tests/Unit/UserPJTest.php</file>
         </testsuite>
         <!-- <testsuite name="Feature">
             <directory>tests/Feature</directory>

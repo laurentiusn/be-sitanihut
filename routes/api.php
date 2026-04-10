@@ -21,6 +21,7 @@ use App\Http\Middleware\PJ;
 use App\Http\Middleware\PJ_Penyuluh;
 use App\Http\Controllers\Api\UserPenyuluhController;
 use App\Http\Controllers\Api\UserPetaniController;
+use App\Http\Controllers\Api\UserPJController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -61,6 +62,8 @@ Route::prefix('v1')->group(function () {
             Route::get('statistik', [StatistikController::class, 'index']);
             Route::get('rekap/nte', [RekapNteController::class, 'index']);
             Route::get('rekap/export', [RekapNteController::class, 'export']);
+            Route::get('user-pj', [UserPJController::class, 'index']);
+            Route::get('user-pj/{user}', [UserPJController::class, 'show']);
         });
 
         //PJ = Admin + PJ
