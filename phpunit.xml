@@ -20,6 +20,7 @@
             <file>tests/Unit/UserPetaniTest.php</file>
             <file>tests/Unit/UserPenyuluhTest.php</file>
             <file>tests/Unit/UserPJTest.php</file>
+            <file>tests/Unit/KatalogTest.php</file>
         </testsuite>
         <!-- <testsuite name="Feature">
             <directory>tests/Feature</directory>

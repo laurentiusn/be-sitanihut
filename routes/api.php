@@ -22,6 +22,8 @@ use App\Http\Middleware\PJ_Penyuluh;
 use App\Http\Controllers\Api\UserPenyuluhController;
 use App\Http\Controllers\Api\UserPetaniController;
 use App\Http\Controllers\Api\UserPJController;
+use App\Http\Middleware\Sekretariat_Penyuluh;
+use App\Http\Controllers\Api\KatalogController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -29,6 +31,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::get('/kph', [KphController::class, 'index']);
     Route::post('/refresh', [AuthController::class, 'refreshToken']);
+    Route::apiResource('katalog', KatalogController::class)->only(['index', 'show']);
 
     //Middleware yang telah login
     Route::middleware('auth:api')->group(function () {
@@ -76,6 +79,10 @@ Route::prefix('v1')->group(function () {
         Route::middleware(PJ_Penyuluh::class)->group(function () {
             Route::get('user-petani', [UserPetaniController::class, 'index']);
             Route::get('user-petani/{user}', [UserPetaniController::class, 'show']);
+        });
+
+        Route::middleware(Sekretariat_Penyuluh::class)->group(function (){
+            Route::apiResource('katalog', KatalogController::class)->except(['index', 'show']);
         });
     });
 });
