@@ -18,3 +18,4 @@ default:
         - UserPenyuluhContext
         - UserPJContext
         - KatalogContext
+        - InformasiContext

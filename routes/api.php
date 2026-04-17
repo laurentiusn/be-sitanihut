@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\UserPetaniController;
 use App\Http\Controllers\Api\UserPJController;
 use App\Http\Middleware\Sekretariat_Penyuluh;
 use App\Http\Controllers\Api\KatalogController;
+use App\Http\Controllers\Api\InformasiController;
 
 Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -32,6 +33,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/kph', [KphController::class, 'index']);
     Route::post('/refresh', [AuthController::class, 'refreshToken']);
     Route::apiResource('katalog', KatalogController::class)->only(['index', 'show']);
+    Route::apiResource('informasi', InformasiController::class)->only(['index', 'show']);
 
     //Middleware yang telah login
     Route::middleware('auth:api')->group(function () {
@@ -55,6 +57,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/komoditas/import', [ImportController::class, 'komoditasImport']);
             Route::post('/kth/import', [ImportController::class, 'kthImport']);
             Route::post('/users/import', [ImportController::class, 'userImport']);
+            Route::apiResource('informasi', InformasiController::class)->except(['index', 'show']);
         });
 
         //Admin = Sekretariat & Auditor

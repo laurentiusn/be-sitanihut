@@ -21,6 +21,7 @@
             <file>tests/Unit/UserPenyuluhTest.php</file>
             <file>tests/Unit/UserPJTest.php</file>
             <file>tests/Unit/KatalogTest.php</file>
+            <file>tests/Unit/InformasiTest.php</file>
         </testsuite>
         <!-- <testsuite name="Feature">
             <directory>tests/Feature</directory>
