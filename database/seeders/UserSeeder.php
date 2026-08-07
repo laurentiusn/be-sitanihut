@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
             'nama_user' => 'Demo Sekretariat',
         ])->create(['email' => 'sekretariat@demo.com']);
 
-        Katalog::factory()->count(3)->create(['id_user' => $sekretariat->id]);
+        // Katalog::factory()->count(3)->create(['id_user' => $sekretariat->id]);
 
         // Akun Demo 2: Auditor
         User::factory()->auditor()->withDetail([
