@@ -16,8 +16,14 @@ class DatabaseSeeder extends Seeder
             KphSeeder::class,
             KomoditasSeeder::class,
             UserSeeder::class,
-            KthSeeder::class,
-            LaporanSeeder::class
+
+            // UNCOMMENT: to create dummy data of KTH and Laporan for demo purposes
+            
+            // Note: You need to uncomment the related code in UserSeeder.php
+            // to be able run the following line without errors
+
+            // KthSeeder::class,
+            // LaporanSeeder::class
         ]);
     }
 }
